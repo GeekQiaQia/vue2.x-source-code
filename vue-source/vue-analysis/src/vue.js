@@ -91,6 +91,8 @@ class Watch{
 
     // 读取当前expression，触发依赖收集；
     Dep.target=this;
+    vm[key]
+    Dep.target=null;
 
    }
 
