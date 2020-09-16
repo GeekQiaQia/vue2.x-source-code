@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from './mvue-router'
 import Home from '../views/Home.vue'
 
-
+// Vue.use做了什么事情呢
 Vue.use(VueRouter);
 
 const routes=[
