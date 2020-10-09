@@ -1,0 +1,76 @@
+<!DOCTYPE html> 
+<html> 
+
+<head> 
+    <title>Vue事件处理</title> </head> 
+
+<body> 
+    <div id="demo"> 
+        <h1>v-for和v-if谁的优先级高？应该如何正确使用避免性能问题？</h1> 
+        <!-- <p v-for="child in children" v-if="isFolder">{{child.title}}</p> --> 
+        <template v-if="isFolder"> 
+            <p v-for="child in children">{{child.title}}</p> 
+        </template> 
+    </div> 
+    <script src="../../dist/vue.js"></script> 
+    <script> 
+        // 创建实例 
+        const app = new Vue({  
+            el: '#demo', 
+            data() { 
+                return { 
+                    children: [ 
+                        {title:'foo'}, 
+                        {title:'bar'}, 
+                    ] 
+                } 
+            }, 
+            computed: { 
+                isFolder() { 
+                    return this.children && this.children.length > 0                  } 
+            }, 
+        }); 
+        console.log(app.$options.render); 
+        
+// 源码中的答案：compiler/codegen/index.js
+       
+/**
+ *       ## 当两者不同级时，打印的渲染函数为：
+ *         (function anonymous() {
+                with(this){return _c('div',{attrs:{"id":"demo"}},[_c('h1',[_v("v-for和v-if谁的优先级高？应该如何正确使用避免性能问题？")]),_v(" "),
+                (isFolder)?_l((children),function(child){return _c('p',[_v(_s(child.title))])}):_e()],2)}
+            })
+        ## 当两者同级时，打印的渲染函数为；
+        (function anonymous( ) { 
+            with(this){return _c('div',{attrs:{"id":"demo"}},[_c('h1',[_v("v-for和v-if谁的优先 级高？应该如何正确使用避免性能问题？")]),_v(" "), 
+            _l((children),function(child){return (isFolder)?_c('p', [_v(_s(child.title))]):_e()})],2)} 
+            }) 
+
+
+ *     * _l():列表渲染函数 _l(children) => list();
+ *     * _e():为empty()空函数，
+ *     * _c():createElement()创建元素的函数；
+ *     由打印的以上匿名函数可知：
+ *     ##当v-for和v-if 同级时：
+ *     *  先判断v-if isFolder,然后再决定是否执行_l();列表渲染函数；
+ *     ##当v-for和v-if 同级时
+ *     * 先执行_l()列表渲染函数，在其工厂函数function(child)中先判断isFolder,是否为true,
+ *     * 如果为true,则执行_c()生成element函数；
+ *     * 否则执行_e();空函数；
+ * 
+ *     另外：在源码compiler编译模块中，compiler/codegen/index.js中有
+ *     function genElement();如下片段；
+ *      ...
+ *        } else if (el.for && !el.forProcessed) {
+             return genFor(el, state)
+        } else if (el.if && !el.ifProcessed) {
+            return genIf(el, state)
+ * 
+ *      ...
+ *     在生成element元素的时候，先判断el.for 是否存在，然后判断el.if；
+ *     总结： 由此可见v-for 优先级比v-if高，且优化方案为：
+ *     使用template v-if 包裹 v-for 循环；
+*/
+    </script> 
+</body> 
+</html> 
